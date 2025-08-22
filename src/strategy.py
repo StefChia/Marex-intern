@@ -25,6 +25,9 @@ class MarketMaker:
         self.position = Decimal("0")
         self.cash = Decimal("0")
         self.last_mid: Decimal | None = None
+        
+        self.skew_pwr = Decimal("0")
+    
 
     # -------- quoting --------
     def _round_to_tick(self, px: Decimal) -> Decimal:
@@ -42,6 +45,7 @@ class MarketMaker:
         inv = max(-1.0, min(1.0, inv))
 
         base = self.base_bps
+        self.skew_pwr = self.skew_k * Decimal(inv)
         skew = self.skew_k * Decimal(inv) * base
 
         bid_px = self._round_to_tick(self.last_mid * (Decimal(1) - (base + skew) / Decimal(1e4)))

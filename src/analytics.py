@@ -4,6 +4,10 @@ from collections import deque, defaultdict
 from decimal import Decimal
 from statistics import median
 from typing import Dict, Iterable, List, Optional, Tuple
+import pandas as pd
+import numpy as np
+import json
+from pathlib import Path
 
 # ---------- core snapshot computations ----------
 
@@ -48,6 +52,41 @@ def compute_spreads_snapshot(orderbook, sizes: Iterable[Decimal]) -> Dict:
             "sell_vwap": sell_vwap
         }
     return out
+
+def compute_data(orderbook, sizes: Iterable[Decimal]) -> Dict:
+    """
+    Returns a snapshot dict with:
+      - mid
+      - top_of_book: {usd, bps}
+      - sizes: {size -> {usd, bps, buy_vwap, sell_vwap}}
+    """
+    mid = orderbook.mid()
+
+    # Top-of-book spread
+    bb, _ = orderbook.best_bid()
+    ba, _ = orderbook.best_ask()
+    top_usd = (ba - bb) if (bb is not None and ba is not None) else None
+    top_bps = _bps(top_usd, mid) if top_usd is not None else None
+
+    out_ask = {'best':ba}
+    out_bid = {'best':bb}
+    spreads = {'best': top_bps}
+       
+
+    for s in sizes:
+        buy_vwap  = orderbook.vwap_to_take("buy", s)   # take from asks
+        sell_vwap = orderbook.vwap_to_take("sell", s)  # take from bids
+        if buy_vwap is None or sell_vwap is None or mid is None:
+            out_ask[s] = None
+            out_bid[s] = None
+            spreads[s] = None
+            continue
+        raw = buy_vwap - sell_vwap
+        out_ask[s] = buy_vwap
+        out_bid[s] = sell_vwap
+        spreads[s] = raw
+        
+    return spreads, out_bid, out_ask
 
 # ---------- rolling windows & stats ----------
 
@@ -104,8 +143,15 @@ class SpreadTracker:
         self.win_usd: Dict[Decimal, RollingWindow] = {s: RollingWindow(window) for s in self.sizes}
         self.win_bps: Dict[Decimal, RollingWindow] = {s: RollingWindow(window) for s in self.sizes}
         self._last_snapshot: Optional[Dict] = None
+        
+        #MY ADDITION
+        self.spreads : Dict[Decimal, RollingWindow] = {s: RollingWindow(window) for s in self.sizes}
+        self.bid_lev : Dict[Decimal, RollingWindow] = {s: RollingWindow(window) for s in self.sizes}
+        self.ask_lev : Dict[Decimal, RollingWindow] = {s: RollingWindow(window) for s in self.sizes}
+        
+        
 
-    def update(self, snapshot: Dict) -> None:                   #THIS IS THE FEEDING FROM THE COMPUTE SNAPSHOT AND THE CURRENT ROLLING TRACKER
+    def update(self, snapshot: Dict) -> None:                   #THIS IS THE FEEDING FROM THE COMPUTE SPREADS SNAPSHOT TO THE CURRENT ROLLING TRACKER
         """Feed the latest compute_spreads_snapshot output."""
         self._last_snapshot = snapshot
         top = snapshot["top_of_book"]
@@ -141,3 +187,24 @@ class SpreadTracker:
                 "bps": self.win_bps[s].summary(),
             }
         return {"current": cur, "rolling": roll}
+    
+    def report_for_historic_roll_spreads(self) -> Dict:
+        """
+        Returns a dict
+        """
+        roll = {
+            "top":  self.win_top_bps,
+        }
+        for s in self.sizes:
+            roll[s] = self.win_bps[s]
+            
+        return roll
+        
+        
+    def get_json(self,title='data_rolling.json'):
+        """"""
+        path = Path(f'/Users/stefanochiapparini/Desktop/PYTHON/Marex-intern/{title}')
+        data = {'bid':self.bid_lev,'ask':self.ask_lev, 'spreads':self.win_bps}
+        content = json.dumps(data)
+        path.write_text(content)
+        
