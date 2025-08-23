@@ -71,13 +71,14 @@ spreads.csv — time series of top-of-book and size-aware spreads.
 power_ask.csv - evolution of the ask curve in orderbook (see Power Ask)
 power_bid.csv - evolution of the bid curve in orderbook (see Power Bid)
 (If you restart the app, logs will be append ed; delete old CSVs if you want a fresh run.)
+```
 
 STRATEGY:(Potential further developments)
 make base_bps adaptive to short-term volatility (wider when vol spikes, tighter when calm),
 and make q_size smaller as your inventory grows.
 +
 MAKE a mkt making FIFO Simulation.
-```
+
 
 
 
