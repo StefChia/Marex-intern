@@ -73,9 +73,10 @@ power_bid.csv - evolution of the bid curve in orderbook (see Power Bid)
 (If you restart the app, logs will be append ed; delete old CSVs if you want a fresh run.)
 
 STRATEGY:(Potential further developments)
-If you want to upgrade later: make base_bps adaptive to short-term volatility (wider when vol spikes, tighter when calm), and make q_size smaller as your inventory grows.
+make base_bps adaptive to short-term volatility (wider when vol spikes, tighter when calm),
+and make q_size smaller as your inventory grows.
 +
-MAKE a mkt macking FIFO Simulation.
+MAKE a mkt making FIFO Simulation.
 ```
 
 
