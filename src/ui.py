@@ -1,9 +1,8 @@
 
-# src/ui.py
 from __future__ import annotations
 from decimal import Decimal
 from typing import Dict, Tuple, Optional, Iterable
-
+import asyncio
 from rich.console import Console, Group
 from rich.live import Live
 from rich.table import Table
@@ -35,7 +34,6 @@ def _book_table(ob, depth: int = 5) -> Table:
     ask_rows = asks[:]
     bid_rows = bids[:]
     # asks are ascending; show highest near mid toward bottom
-    # we'll print from bottom part of arrays to top with padding
     for i in range(max_rows):
         a = ask_rows[i] if i < len(ask_rows) else (None, None)
         b = bid_rows[i] if i < len(bid_rows) else (None, None)
@@ -57,7 +55,7 @@ def _spreads_table(tracker, sizes: Iterable[Decimal]) -> Table:
     t.add_column("Avg (bps)", justify="right")
     t.add_column("Min/Max (bps)", justify="right")
 
-    # Top of book
+    # Top-book
     top_bps_cur = top.get("bps")
     roll_top = rep.get("rolling", {}).get("top", {}).get("bps", {})
     t.add_row(
@@ -87,10 +85,11 @@ def _quotes_table(quotes: Dict[str, Tuple[Optional[Decimal], Decimal]], mm) -> T
     t.add_column("Side")
     t.add_column("Price", justify="right")
     t.add_column("Size", justify="right")
+    t.add_column("Skew Power", justify="right")
     bid_px, bid_sz = quotes.get("bid", (None, Decimal(0)))
     ask_px, ask_sz = quotes.get("ask", (None, Decimal(0)))
-    t.add_row("Bid", _fmt(bid_px, 2), _fmt(bid_sz, 6))
-    t.add_row("Ask", _fmt(ask_px, 2), _fmt(ask_sz, 6))
+    t.add_row("Bid", _fmt(bid_px, 2), _fmt(bid_sz, 6), _fmt(mm.skew_pwr, 4))
+    t.add_row("Ask", _fmt(ask_px, 2), _fmt(ask_sz, 6), _fmt(mm.skew_pwr, 4))
     t.caption = f"Params: base={mm.base_bps} bps | q_size={_fmt(mm.q_size, 6)} BTC"
     return t
 
@@ -125,7 +124,7 @@ def _trades_table(tbuf, n: int = 12) -> Table:
 def render_dashboard(ob, tracker, sizes, mm, risk, tbuf):
     mid = ob.mid()
     snap = risk.snapshot(mid)
-    # Gate whatever mm has most recently produced (don't re-make quotes here)
+    # Gate whatever mm has most recently produced
     quotes = risk.gate_quotes(mm.quotes, snap)
 
     header = Panel(
@@ -146,13 +145,16 @@ def render_dashboard(ob, tracker, sizes, mm, risk, tbuf):
     return layout
 
 async def run_ui(ob, tracker, sizes, mm, risk, tbuf, refresh: float = 0.25):
-    # Avoid spamming prints when Live is running; prefer console.log for one-off events elsewhere if needed
-    with Live(render_dashboard(ob, tracker, sizes, mm, risk, tbuf),
-              refresh_per_second=int(1/refresh) if refresh > 0 else 4,
-              screen=True, console=console):
-        # The Live context will keep updating when .update is called
-        import asyncio
+    # initial renderable
+    layout = render_dashboard(ob, tracker, sizes, mm, risk, tbuf)
+
+    # create Live and keep a handle to it as `live`
+    with Live(layout,
+              refresh_per_second=int(1 / refresh) if refresh > 0 else 4,
+              screen=True,
+              console=console) as live:
         while True:
+            # rebuild the layout each tick and push it to the Live display
             layout = render_dashboard(ob, tracker, sizes, mm, risk, tbuf)
-            console.live.update(layout)  # type: ignore[attr-defined]
+            live.update(layout, refresh=True)   
             await asyncio.sleep(refresh)

@@ -1,5 +1,4 @@
 
-# src/main.py
 import asyncio
 from decimal import Decimal
 from orderbook import OrderBookL2
@@ -37,14 +36,14 @@ def on_match(trade):
     for side, qty, px in fills:
         # Update both MM's own bookkeeping and RiskManager
         risk.on_fill(side, Decimal(str(qty)), Decimal(str(px)))
-        print(f"[fill {trade['time']}] {side} {qty} @ {px} | pos= {mm.position} BTC | skew_pwr(vs base)= {round(mm.skew_pwr,4)}")
+        print(f"[fill {trade['time']}] {side} {qty} @ {px} | pos= {mm.position} BTC")
 
 #LOOP FOR OUR QUOTES
 async def quote_loop():
     while True:
         mid = ob.mid()
         if mid is not None:
-            pos_limit_btc = Decimal("1000000") / mid  # dynamic BTC cap from $1m
+            pos_limit_btc = Decimal("1000000") / mid  
             raw_quotes = mm.make_quotes(mid, mm.position, pos_limit_btc)
 
             snap = risk.snapshot(mid)
@@ -53,12 +52,13 @@ async def quote_loop():
             bid_px, bid_sz = quotes["bid"]
             ask_px, ask_sz = quotes["ask"]
 
-            # tiny status line
+            #I have added the skew_power to show how we dynamically (based on exposition) we skew the bid-ask quotes
             print(
                 f"[quote][{snap.mode}] "
                 f"pos={snap.position}  exp=${snap.exposure_usd:.0f}  "
                 f"PnL R/U/T={snap.realized:.0f}/{snap.unrealized:.0f}/{snap.total:.0f}  "
-                f"bid={bid_px} x{bid_sz} | ask={ask_px} x{ask_sz}"
+                f"bid={bid_px} x{bid_sz} | ask={ask_px} x{ask_sz} | "
+                f'skew_pwr(vs base)= {round(mm.skew_pwr,4)}'
             )
         await asyncio.sleep(0.25)
 

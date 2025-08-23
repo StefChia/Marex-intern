@@ -29,7 +29,7 @@ class MarketMaker:
         self.skew_pwr = Decimal("0")
     
 
-    # -------- quoting --------
+    # Our Quotes
     def _round_to_tick(self, px: Decimal) -> Decimal:
         # round to nearest tick without accumulating float errors
         return (px / self.tick).quantize(Decimal(1)) * self.tick
@@ -54,7 +54,7 @@ class MarketMaker:
         self.quotes = {"bid": (bid_px, self.q_size), "ask": (ask_px, self.q_size)}
         return self.quotes
 
-    # -------- fills (from trade prints) --------
+    # Fills (from trade prints)
     def on_fill(self, side: str, size: Decimal, price: Decimal) -> None:
         if side == "buy":
             self.position += size

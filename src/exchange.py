@@ -19,14 +19,14 @@ async def run(on_snapshot, on_l2update, on_match):
                 print("[ack]", msg)
                 continue
         
-            # Route messages
+            # wss Route messages
             if t == "snapshot" and msg.get("product_id") == "BTC-USD":
                 on_snapshot(msg["bids"], msg["asks"])          # arrays of [price, size]
             elif t == "l2update" and msg.get("product_id") == "BTC-USD":
                 # changes: [["buy","price","size"], ...] ; size is absolute (0 -> remove)
                 on_l2update(msg["changes"], msg.get("time"))
             elif t in ("match", "last_match") and msg.get("product_id") == "BTC-USD":
-                # fields: price, size, side, time, trade_id, etc.
+                # fields: price, size, side, time
                 on_match({
                     "price": float(msg["price"]),
                     "size":  float(msg["size"]),

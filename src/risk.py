@@ -34,7 +34,7 @@ class RiskManager:
         self.avg_entry: Optional[Decimal] = None
         self.realized = Decimal("0")
 
-    # ---------- PnL & inventory accounting ----------
+    #PnL & Inventory
     def on_fill(self, side: str, size: Decimal, price: Decimal) -> None:
         """
         Update position, realized PnL and avg entry.
@@ -96,7 +96,7 @@ class RiskManager:
             unrealized=unreal, total=total, mode=mode
         )
 
-    # ---------- Quote gating ----------
+    # Quote gating
     def gate_quotes(self, quotes: Dict[str, Tuple[Optional[Decimal], Decimal]],
                     snap: RiskSnapshot) -> Dict[str, Tuple[Optional[Decimal], Decimal]]:
         """
@@ -113,7 +113,7 @@ class RiskManager:
                 # Short -> only buy (bid) to reduce
                 out["ask"] = (None, Decimal("0"))
             else:
-                # Flat but loss_cut: safest is don't add risk; here we keep both off
+                # Flat but loss_cut: keep both off
                 if snap.mode == "loss_cut":
                     out["bid"] = (None, Decimal("0"))
                     out["ask"] = (None, Decimal("0"))

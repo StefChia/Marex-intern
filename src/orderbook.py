@@ -1,18 +1,17 @@
 
-# src/orderbook.py
 from __future__ import annotations
 from bisect import bisect_left, insort
 from decimal import Decimal, getcontext
 from typing import Dict, List, Optional, Tuple, Iterable
 
-# Enough precision for crypto prices/sizes; adjust if you like
+# Choose precision for decimal(for crypto default is 28)
 getcontext().prec = 28
 
 DecimalLike = Decimal
 
 class OrderBookL2:
     """
-    Minimal, interview-ready L2 order book:
+    Minimal L2 order book:
     - Maintains aggregated bids/asks
     - Supports snapshot + l2update (absolute sizes; "0" removes level)
     - Fast best bid/ask, mid, top-N, and size-aware VWAP walks
@@ -27,7 +26,7 @@ class OrderBookL2:
         self.ask_px: List[DecimalLike] = []
         self._ready = False
 
-    # ---------- core updates ----------
+    #UPDATES
     def apply_snapshot(self, bids: Iterable[Iterable[str]], asks: Iterable[Iterable[str]]) -> None:
         """Coinbase L2 snapshot: bids/asks are arrays of [price, size] (strings)."""
         self.__init__()  # clear
@@ -39,7 +38,7 @@ class OrderBookL2:
 
     def apply_l2update(self, changes: Iterable[Iterable[str]]) -> None:
         """
-        Coinbase L2 update: changes is array of [side, price, size] (strings).
+        Coinbase L2 update: changes is array of [side, price, size].
         Size is the UPDATED aggregated size at price (NOT a delta). "0" => remove level.
         """
         if not self._ready:
@@ -49,7 +48,7 @@ class OrderBookL2:
             px = Decimal(p_str); sz = Decimal(s_str)
             self._set_level("buy" if side == "buy" else "sell", px, sz)
 
-    # ---------- queries ----------
+    #Queries
     def best_bid(self) -> Tuple[Optional[DecimalLike], DecimalLike]:
         if not self.bid_px:
             return (None, Decimal(0))
@@ -108,7 +107,7 @@ class OrderBookL2:
             return None
         return notional / size
 
-    # ---------- internals ----------
+    #SUPPORTING FUNCTIONS
     def _set_level(self, side: str, px: DecimalLike, sz: DecimalLike) -> None:
         if side == "buy":
             book = self.bids; plist = self.bid_px
@@ -130,7 +129,7 @@ class OrderBookL2:
         if is_new:
             insort(plist, px)
 
-    # Optional: quick consistency check for debugging
+    # Consistency check
     def assert_invariants(self) -> None:
         assert self.bid_px == sorted(self.bids.keys()), "bid_px out of sync"
         assert self.ask_px == sorted(self.asks.keys()), "ask_px out of sync"
@@ -138,7 +137,7 @@ class OrderBookL2:
 
 
 
-
+"""
 #SANITY CHECK ORDERBOOK OFFLINE
 if __name__ == "__main__":
     ob = OrderBookL2()
@@ -153,3 +152,4 @@ if __name__ == "__main__":
     print("bb/ba/mid:", ob.best_bid(), ob.best_ask(), ob.mid())
     print("VWAP buy 1.0:", ob.vwap_to_take("buy", Decimal("1.0")))
     print("VWAP sell 1.0:", ob.vwap_to_take("sell", Decimal("1.0")))
+"""
