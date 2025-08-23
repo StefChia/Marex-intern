@@ -13,7 +13,7 @@ Tracks PnL (R/U/T) and exposure, enforces: Max notional exposure = $1,000,000 & 
 Logs spreads, PnL, fills, and power curves (impact vs size).
 Provides a neat console UI (Rich).
 
-
+```text
 PROJECT COMPOSITION:
 /src
   exchange.py       # WebSocket client (level2_batch + matches)
