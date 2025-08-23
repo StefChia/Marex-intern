@@ -37,7 +37,7 @@ PROJECT COMPOSITION:
 /data               # CSV output (created on first run)
 README.md
 requirements.txt
-
+```
 
 Keeping in mind also some of the topics discussed during the interview I also added:
 
@@ -56,7 +56,7 @@ I have added the skew_power to show how we dynamically (based on exposition) we 
 
 
 
-
+```text
 MORE KEY INSIGHTS & RECALLS:
 
 MATCHING SIDE (websockets definition of "side")
@@ -76,6 +76,7 @@ STRATEGY:(Potential further developments)
 If you want to upgrade later: make base_bps adaptive to short-term volatility (wider when vol spikes, tighter when calm), and make q_size smaller as your inventory grows.
 +
 MAKE a mkt macking FIFO Simulation.
+```
 
 
 
