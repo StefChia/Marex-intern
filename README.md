@@ -42,6 +42,7 @@ requirements.txt
 Keeping in mind also some of the topics discussed during the interview I also added:
 
 1) POWER BID AND POWER ASK
+   
 Intuition:
 power_ask: the buy-side price impact curve — how many bps above mid you’d pay to instantly buy size S from the asks.
 power_bid: the sell-side price impact curve — how many bps relative to mid you’d get (or give up) to instantly sell size S into the bids.
@@ -51,6 +52,7 @@ A simple animation of the dynamics of this curves (hence of the orderbook) is sh
 Further analysis of these and other metrics could potentially provide signals.
 
 2) SHOW THE 'SKEW_POWER' IN OUR QUOTES:
+   
 I have added the skew_power to show how we dynamically (based on exposition) we skew the bid-ask quotes to revert back.
 
 
