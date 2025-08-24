@@ -1,6 +1,5 @@
 websockets
 orjson
-json
 rich
 numpy
 pandas

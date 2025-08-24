@@ -3,6 +3,13 @@ Exercise for Marex crypto intern
 
 A minimal market-making simulator on BTC-USD with live L2 book, size-aware spreads, inventory-skewed quotes, simulated maker fills, risk limits, logging, and a console UI.
 
+
+TO RUN: (run these files in this order)
+- main.py
+- plots.py
+- plot_curves_pwr.py
+
+
 WHAT IT DOES:
 Streams market data from Coinbase (WebSocket).
 Maintains a live Level-2 order book.

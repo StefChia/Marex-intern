@@ -1,0 +1,19 @@
+
+# Python defaults
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv
+
+# Project-specific
+# Logs and trade history
+*.log
+logs/
+trade_logs/
+
+# CSV exports (PnL, trades, spreads, etc.)
+*.csv
+exports/
+data/
