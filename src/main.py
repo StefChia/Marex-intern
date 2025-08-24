@@ -5,7 +5,7 @@ from orderbook import OrderBookL2
 from exchange import run
 from analytics import compute_spreads_snapshot,compute_data, SpreadTracker
 from trade_buffer import TradeBuffer
-from strategy import MarketMaker
+from strategy import MarketMaker, MarketMakerFIFO
 from risk import RiskManager
 from ui import run_ui
 from datetime import datetime, timezone
@@ -16,7 +16,16 @@ ob = OrderBookL2()
 sizes = [Decimal("0.1"), Decimal("1"), Decimal("5"), Decimal("10")]
 tracker = SpreadTracker(sizes, window=300)
 tbuf = TradeBuffer(maxlen=60)
-mm = MarketMaker(base_bps=0.001, q_size="0.05", skew_k="0.25", tick="0.01")
+
+#DECIDE MKT MAKING
+#Tick-based spread (2 ticks)(suggested)
+mm = MarketMakerFIFO(q_size="0.05", skew_k="0.25", tick="0.01") 
+#mm = MarketMaker(q_size="0.05", skew_k="0.25", tick="0.01")
+#Arbitrary chosen base spread bps
+#mm = MarketMaker_ex_base(base_bps=0.0008,q_size="0.05", skew_k="0.25", tick="0.01")        currently 1 tick = 0.00087 bps
+#mm = MarketMaker_ex_FIFO(base_bps=0.0001, q_size="0.05", skew_k="0.25", tick="0.01")       closer to best to fill more
+
+#SET RISK MANAGEMENT + LOGS
 risk = RiskManager(max_exposure_usd=1_000_000, max_loss_usd=100_000)
 logger = CSVLogger(root="data")
 
@@ -60,11 +69,20 @@ async def quote_loop():
         mid = ob.mid()
         if mid is not None:
             pos_limit_btc = Decimal("1000000") / mid
-            raw_quotes = mm.make_quotes(mid, mm.position, pos_limit_btc)
+            
+            #NO FIFO  & FIFO+NO-TICKS
+            #raw_quotes = mm.make_quotes(mid, mm.position, pos_limit_btc)
+            #ONLY FOR FIFO + TICK
+            raw_quotes = mm.make_quotes(mid, mm.position, pos_limit_btc, ob)
+            
             snap = risk.snapshot(mid)
             # Prepare for UI
             gated = risk.gate_quotes(raw_quotes, snap)
             mm.quotes = gated
+            
+            #Compute the FIFO metrics for current quote
+            mm.sync_active_orders_with_book(ob)
+            
             # periodic PnL snapshot
             logger.log_pnl(_now_iso(), snap)
         await asyncio.sleep(0.25)

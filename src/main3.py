@@ -5,15 +5,25 @@ from orderbook import OrderBookL2
 from exchange import run
 from analytics import compute_spreads_snapshot, SpreadTracker
 from trade_buffer import TradeBuffer
-from strategy import MarketMaker
+from strategy import MarketMaker, MarketMakerFIFO
+from strategy_ex_base import MarketMaker_ex_base, MarketMaker_ex_FIFO
 from risk import RiskManager
 
+#INSTANTIATE
 ob = OrderBookL2()
 sizes = [Decimal("0.1"), Decimal("1"), Decimal("5"), Decimal("10")]
 tracker = SpreadTracker(sizes, window=300)
-
 tbuf = TradeBuffer(maxlen=60)
-mm = MarketMaker(base_bps=0.001, q_size="0.05", skew_k="0.25", tick="0.01")
+
+#DECIDE MKT MAKING
+#Tick-based spread (2 ticks)(suggested)
+#mm = MarketMaker(q_size="0.05", skew_k="0.25", tick="0.01")
+mm = MarketMakerFIFO(q_size="0.05", skew_k="0.25", tick="0.01") 
+#Arbitrary chosen base spread bps
+#mm = MarketMaker_ex_base(base_bps=0.0008,q_size="0.05", skew_k="0.25", tick="0.01")
+#mm = MarketMaker_ex_FIFO(base_bps=0.0001, q_size="0.05", skew_k="0.25", tick="0.01")
+
+#SET RISK MANAGEMENT
 risk = RiskManager(max_exposure_usd=1_000_000, max_loss_usd=100_000)
 
 def _fmt(x):
@@ -43,11 +53,19 @@ async def quote_loop():
     while True:
         mid = ob.mid()
         if mid is not None:
-            pos_limit_btc = Decimal("1000000") / mid  
-            raw_quotes = mm.make_quotes(mid, mm.position, pos_limit_btc)
+            pos_limit_btc = Decimal("1000000") / mid
+            
+            #NO FIFO  & FIFO+NO-TICKS
+            #raw_quotes = mm.make_quotes(mid, mm.position, pos_limit_btc)
+            #ONLY FOR FIFO + TICK
+            raw_quotes = mm.make_quotes(mid, mm.position, pos_limit_btc, ob)
 
             snap = risk.snapshot(mid)
             quotes = risk.gate_quotes(raw_quotes, snap)
+            mm.quotes = quotes
+            
+            #Compute the FIFO metrics for current quote
+            mm.sync_active_orders_with_book(ob)
 
             bid_px, bid_sz = quotes["bid"]
             ask_px, ask_sz = quotes["ask"]
