@@ -4,10 +4,13 @@ Exercise for Marex crypto intern
 A minimal market-making simulator on BTC-USD with live L2 book, size-aware spreads, inventory-skewed quotes, simulated maker fills, risk limits, logging, and a console UI.
 
 
+```text
 TO RUN: (run these files in this order)
+- pip install -r requirements.txt  
 - main.py
 - plots.py
 - plot_curves_pwr.py
+```
 
 
 WHAT IT DOES:
