@@ -5,7 +5,8 @@ A minimal market-making simulator on BTC-USD with live L2 book, size-aware sprea
 
 
 ```text
-TO RUN: (run these files in this order)
+TO RUN (run these files in this order):
+
 - pip install -r requirements.txt  
 - main.py
 - plots.py
