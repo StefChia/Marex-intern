@@ -61,7 +61,7 @@ I have added the skew_power to show how we dynamically (based on exposition) we 
 
 3) USE A FIFO MarketMaker
 
-Intuition: Trades must eat that queue ahead before they I can fill my quote.
+Intuition: Trades must go through the queue ahead before filling our quotes.
    
 
 
@@ -90,7 +90,9 @@ power_bid.csv - evolution of the bid curve in orderbook (see Power Bid)
 
 STRATEGY:
 
-MAKE a basic mkt making Simulation. (Since our quote size is 0.05 and thanks to main2.py I could see that the average bps spread for 0.001 BTC is around 0.01 (=0.005 per side) , I choose to use a base bps of 0.001 per side.)
+Both Tick-based rule and target base spread in bps.
++
+MAKE a basic mkt making Simulation. (In order to match tick-based and arbitrary base spread bps, I choose the latter to be 0.0008)
 +
 MAKE a FIFO mkt making Simulation. (Since it's way more difficult to fill I reduced the base spread bps to 0.0001 otherwise we would not have filled enough trades to run the next steps).
 
