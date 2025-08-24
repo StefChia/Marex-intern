@@ -35,7 +35,7 @@ def on_l2update(changes, t):
         print(f'Size:{s} , mean_spread(bps): {tracker.report_for_historic_roll_spreads()[s].mean()}')
     """
 
-    
+    """
     #Display the bid/ask for each size: (level-mid)/mid 
     
     for i in sizes:
@@ -46,11 +46,11 @@ def on_l2update(changes, t):
         tracker.spreads[i].add(spreads[i])
         
         print(f'Size {i} BTC: Bid= {tracker.bid_lev[i].mean()}, Ask= {tracker.ask_lev[i].mean()}, Spread= {tracker.spreads[i].mean()}')
-    
+    """
     
     
     # For each size display the rolling (300) summary statistics for the spreads 4/bps at each size
-    """
+    
     cur = snap["sizes"]
     roll = tracker.report()["rolling"]["sizes"]
     line = [f"[spreads {t}] top=${_fmt(snap['top_of_book']['usd'])} ({_fmt(snap['top_of_book']['bps'])} bps)"]
@@ -63,7 +63,7 @@ def on_l2update(changes, t):
         line.append(f"{s} BTC: {_fmt(c['usd'])}$ / {_fmt(c['bps'])} bps (KPI in bps: avg={_fmt(avg_bps)} median={_fmt(median_bps)} min={_fmt(min_bps)} max={_fmt(max_bps)})")
         
     print(" | ".join(line))
-    """
+    
 
 def on_match(trade):
     pass

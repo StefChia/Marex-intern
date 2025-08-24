@@ -13,7 +13,7 @@ sizes = [Decimal("0.1"), Decimal("1"), Decimal("5"), Decimal("10")]
 tracker = SpreadTracker(sizes, window=300)
 
 tbuf = TradeBuffer(maxlen=60)
-mm = MarketMaker(base_bps=0.0005, q_size="0.05", skew_k="0.25", tick="0.01")
+mm = MarketMaker(base_bps=0.001, q_size="0.05", skew_k="0.25", tick="0.01")
 risk = RiskManager(max_exposure_usd=1_000_000, max_loss_usd=100_000)
 
 def _fmt(x):

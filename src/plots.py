@@ -33,14 +33,12 @@ def plot_spreads():
     rows = _read_csv("data/spreads.csv")
     t = [_parse_ts(r["ts"]) for r in rows]
     top = [float(r["top_bps"]) if r["top_bps"] else None for r in rows]
-
-    # find any size column (e.g., s0.1_bps)
     size_cols = [c for c in rows[0].keys() if c.endswith("_bps") and c != "top_bps"]
     plt.figure()
     plt.plot(t, top, label="Top-of-book")
-    if size_cols:
-        plt.plot(t, [float(rows[i][size_cols[0]]) if rows[i][size_cols[0]] else None for i in range(len(rows))],
-                 label=size_cols[0].replace("_bps",""))
+    for j in range(len(size_cols)):
+        plt.plot(t, [float(rows[i][size_cols[j]]) if rows[i][size_cols[j]] else None for i in range(len(rows))],
+                 label=size_cols[j].replace("_bps",""))
     plt.legend()
     plt.title("Spreads (bps)")
     plt.xlabel("Time"); plt.ylabel("bps")
