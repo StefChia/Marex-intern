@@ -5,7 +5,10 @@ __pycache__/
 *$py.class
 
 # Virtual environments
+.env
 .venv
+env/
+venv/
 
 # Project-specific
 # Logs and trade history
